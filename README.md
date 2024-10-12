@@ -6,4 +6,8 @@ To run client:
 
 - You may change the Url in src\main\java\io\swagger\client\PostWorker.java
 
-  > private static final String BASE_URL = "http://54.200.173.2:8080";
+  > 'private static final String BASE_URL = "http://54.200.173.2:8080";'
+
+- 'mvn clean package'
+
+- 'java -jar target/swagger-java-client-1.0.0.jar'
