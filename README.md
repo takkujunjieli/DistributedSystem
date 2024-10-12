@@ -4,7 +4,7 @@ To locate deployed server file:
 
 To run both clients:
 
-- You may change the Url (> `private static final String BASE_URL = "http://54.200.173.2:8080";`) in > src\main\java\io\swagger\client\PostWorker.java
+- You may change the Url (`private static final String BASE_URL = "http://54.200.173.2:8080";`) in  `src\main\java\io\swagger\client\PostWorker.java`
 
 - `mvn clean package`
 
