@@ -22,17 +22,18 @@ import javax.validation.constraints.*;
 
 
 public class LiftRide   {
-  @JsonProperty("time")
 
-  @JsonInclude(JsonInclude.Include.NON_ABSENT)  // Exclude from JSON if absent
-  @JsonSetter(nulls = Nulls.FAIL)    // FAIL setting if the value is null
-  private Integer time = null;
+  @JsonProperty("time")
+  @NotNull(message = "Time cannot be null")
+  @Min(value = 0, message = "Time must be a positive integer")
+  @Max(value = 1440, message = "Time must be within a valid range (0-1440 minutes)")
+  private Integer time;
+
 
   @JsonProperty("liftID")
-
-  @JsonInclude(JsonInclude.Include.NON_ABSENT)  // Exclude from JSON if absent
-  @JsonSetter(nulls = Nulls.FAIL)    // FAIL setting if the value is null
-  private Integer liftID = null;
+  @NotNull(message = "LiftID cannot be null")
+  @Min(value = 1, message = "LiftID must be a positive integer")
+  private Integer liftID;
 
 
   public LiftRide time(Integer time) { 

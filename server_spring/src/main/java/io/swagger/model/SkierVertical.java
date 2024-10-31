@@ -26,8 +26,10 @@ import javax.validation.constraints.*;
 
 public class SkierVertical   {
   @JsonProperty("resorts")
+  @Size(min = 1, message = "Resorts list must contain at least one item")
+  @NotNull(message = "Resorts list cannot be null")
   @Valid
-  private List<SkierVerticalResorts> resorts = null;
+  private List<SkierVerticalResorts> resorts;
 
   public SkierVertical resorts(List<SkierVerticalResorts> resorts) { 
 

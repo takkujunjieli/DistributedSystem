@@ -4,6 +4,7 @@ io\swagger\configuration\HomeController.class
 io\swagger\api\ResortsApiController.class
 io\swagger\configuration\JacksonConfiguration.class
 io\swagger\api\ApiResponseMessage.class
+io\swagger\GlobalExceptionHandler.class
 io\swagger\model\ResponseMsg.class
 io\swagger\configuration\CustomInstantDeserializer$3.class
 io\swagger\api\StatisticsApi.class
