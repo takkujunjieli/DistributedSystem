@@ -61,10 +61,6 @@ public class SkiersApiController implements SkiersApi {
               @PathVariable("seasonID") @NotBlank String seasonID,
               @PathVariable("dayID") @NotNull @Min(1) @Max(366) String dayID,
               @PathVariable("skierID") @NotNull @Min(1) Integer skierID) {
-//            @Parameter(in = ParameterIn.PATH, description = "ID of the resort the skier is at", required = true, schema = @Schema()) @PathVariable("resortID") Integer resortID,
-//            @Parameter(in = ParameterIn.PATH, description = "ID of the ski season", required = true, schema = @Schema()) @PathVariable("seasonID") String seasonID,
-//            @DecimalMin("1") @DecimalMax("366") @Parameter(in = ParameterIn.PATH, description = "ID number of ski day in the ski season", required = true, schema = @Schema()) @PathVariable("dayID") String dayID,
-//            @Parameter(in = ParameterIn.PATH, description = "ID of the skier riding the lift", required = true, schema = @Schema()) @PathVariable("skierID") Integer skierID)
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {
@@ -83,9 +79,6 @@ public class SkiersApiController implements SkiersApi {
             @PathVariable("skierID") @NotNull @Min(1) Integer skierID,
             @NotNull @RequestParam(value = "resort", required = true) @NotNull @Size(min = 1) List<@NotBlank String> resort,
             @RequestParam(value = "season", required = false) List<@NotBlank String> season) {
-//            @Parameter(in = ParameterIn.PATH, description = "ID the skier to retrieve data for", required = true, schema = @Schema()) @PathVariable("skierID") Integer skierID,
-//            @NotNull @Parameter(in = ParameterIn.QUERY, description = "resort to filter by", required = true, schema = @Schema()) @Valid @RequestParam(value = "resort", required = true) List<String> resort,
-//            @Parameter(in = ParameterIn.QUERY, description = "season to filter by, optional", schema = @Schema()) @Valid @RequestParam(value = "season", required = false) List<String> season) {
         String accept = request.getHeader("Accept");
         if (accept != null && accept.contains("application/json")) {
             try {

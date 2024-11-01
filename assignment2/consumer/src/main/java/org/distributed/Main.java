@@ -1,13 +1,23 @@
 package org.distributed;
 
-public class Main {
-  public static void main(String[] args) {
-    int numThreads = 10;
-    LiftRideConsumer consumer = new LiftRideConsumer("35.88.229.59", "test", numThreads);
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
-    // Add shutdown hook
-    Runtime.getRuntime().addShutdownHook(new Thread(consumer::shutdown));
+public class Main {
+  public static void main(String[] args) throws IOException, TimeoutException {
+    LiftRideConsumer consumer = new LiftRideConsumer();
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        consumer.shutdown();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } catch (TimeoutException e) {
+        throw new RuntimeException(e);
+      }
+    }));
 
     consumer.startConsuming();
   }
 }
+

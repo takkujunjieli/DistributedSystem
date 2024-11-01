@@ -21,6 +21,8 @@ public class ChannelPool {
     this.pool = new LinkedBlockingQueue<>(poolSize);
     ConnectionFactory factory = new ConnectionFactory();
     factory.setHost(host);
+    factory.setUsername("guest");
+    factory.setPassword("guest");
     this.connection = factory.newConnection();
     this.queueName = queueName;
 

@@ -8,9 +8,9 @@ import java.util.*;
 
 public class SkiersApiMultithreadedClient {
 
-    private static final int TOTAL_EVENTS = 200000;
+    private static final int TOTAL_EVENTS = 1000;
     private static final int INITIAL_THREADS = 32;
-    private static final int QUEUE_CAPACITY = 5000;
+    private static final int QUEUE_CAPACITY = 500;
     private static final String CSV_FILE_PREFIX = "performance_log_";
 
     public static void main(String[] args) throws InterruptedException, IOException {

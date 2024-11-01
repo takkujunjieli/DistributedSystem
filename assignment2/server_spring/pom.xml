@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.swagger</groupId>
     <artifactId>swagger-spring</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>swagger-spring</name>
     <version>1.0.0</version>
     <properties>

@@ -2,6 +2,8 @@ package org.distributed;
 
 import com.rabbitmq.client.*;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 import java.util.concurrent.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -15,36 +17,73 @@ public class LiftRideConsumer {
   private final int numThreads;
   private final ExecutorService executorService;
   private final ObjectMapper objectMapper;
+  private Connection connection;
+  private ChannelPool channelPool;
 
-  public LiftRideConsumer(String host, String queueName, int numThreads) {
+  public LiftRideConsumer() {
     this.skierRecords = new ConcurrentHashMap<>();
-    this.queueName = queueName;
-    this.numThreads = numThreads;
+    Properties properties = loadProperties();
+
+    String host = properties.getProperty("rabbitmq.host");
+    this.queueName = properties.getProperty("rabbitmq.queue");
+    this.numThreads = Integer.parseInt(properties.getProperty("consumer.numThreads"));
     this.executorService = Executors.newFixedThreadPool(numThreads);
     this.objectMapper = new ObjectMapper();
 
     factory = new ConnectionFactory();
     factory.setHost(host);
+    factory.setUsername("guest");
+    factory.setPassword("guest");
   }
 
-  public void startConsuming() {
+  private Properties loadProperties() {
+    Properties properties = new Properties();
+    try (InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties")) {
+      if (input == null) {
+        log.error("Sorry, unable to find application.properties");
+        return properties;
+      }
+      properties.load(input);
+    } catch (IOException ex) {
+      log.error("Error loading application.properties", ex);
+    }
+    return properties;
+  }
+
+  public void startConsuming() throws IOException, TimeoutException {
     try {
-      Connection connection = factory.newConnection(executorService);
+      connection = factory.newConnection(executorService);
+      channelPool = new ChannelPool(connection, numThreads);
 
       for (int i = 0; i < numThreads; i++) {
-        Channel channel = connection.createChannel();
+        executorService.submit(new ConsumerWorker());
+      }
+
+      log.info("Started {} consumer threads", numThreads);
+    } catch (IOException | TimeoutException e) {
+      log.error("Error starting consumer", e);
+      shutdown();
+    }
+  }
+
+  private class ConsumerWorker implements Runnable {
+    @Override
+    public void run() {
+      Channel channel = null;
+      try {
+        channel = channelPool.borrowChannel();
         channel.queueDeclare(queueName, true, false, false, null);
-        // Limit the number of unacknowledged messages per consumer
         channel.basicQos(10);
 
         Consumer consumer = createConsumer(channel);
         channel.basicConsume(queueName, false, consumer);
-
-        log.info("Started consumer thread {}", i + 1);
+      } catch (IOException e) {
+        log.error("Error in consumer worker", e);
+      } finally {
+        if (channel != null) {
+          channelPool.returnChannel(channel);
+        }
       }
-    } catch (IOException | TimeoutException e) {
-      log.error("Error starting consumer", e);
-      shutdown();
     }
   }
 
@@ -58,12 +97,10 @@ public class LiftRideConsumer {
           LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
           processLiftRide(request);
 
-          // Acknowledge the message
           channel.basicAck(envelope.getDeliveryTag(), false);
           log.debug("Processed message for skier: {}", request.getSkierID());
         } catch (Exception e) {
           log.error("Error processing message", e);
-          // Reject the message and requeue it
           channel.basicNack(envelope.getDeliveryTag(), false, true);
         }
       }
@@ -75,11 +112,19 @@ public class LiftRideConsumer {
         .addRide(request.getLiftRide());
   }
 
-//  public LiftRideRecord getSkierRecord(Integer skierId) {
-//    return skierRecords.get(skierId);
-//  }
+  public void shutdown() throws IOException, TimeoutException {
+    if (channelPool != null) {
+      channelPool.close();
+    }
 
-  public void shutdown() {
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (IOException e) {
+        log.error("Error closing connection", e);
+      }
+    }
+
     executorService.shutdown();
     try {
       if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {

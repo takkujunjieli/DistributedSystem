@@ -9,6 +9,10 @@ public class LiftRideRequest {
   private LiftRide liftRide;
 
   // Constructor
+
+  public LiftRideRequest() {
+  }
+
   public LiftRideRequest(Integer resortID, String seasonID, String dayID, Integer skierID,
       LiftRide liftRide) {
     this.resortID = resortID;
