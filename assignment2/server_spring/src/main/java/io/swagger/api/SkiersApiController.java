@@ -118,9 +118,13 @@ public class SkiersApiController implements SkiersApi {
         Channel channel = null;
         try {
             channel = channelPool.borrowChannel();
+            if (channel == null) {
+                log.warn("Failed to borrow a channel from the pool");
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+            }
             // Send message to RabbitMQ using the borrowed channel
             byte[] messageBytes = objectMapper.writeValueAsBytes(liftRideRequest);
-            channel.basicPublish("", queueName, MessageProperties.MINIMAL_BASIC, messageBytes);
+            channel.basicPublish("myExchange", "consumerKey", null, messageBytes);
             log.info("Message sent to RabbitMQ for skierID: {}", skierID);
         } catch (Exception e) {
             log.error("Error sending message", e);

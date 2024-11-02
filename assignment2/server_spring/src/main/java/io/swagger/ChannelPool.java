@@ -16,6 +16,7 @@ public class ChannelPool {
   private final BlockingQueue<Channel> pool;
   private final Connection connection;
   private final String queueName;
+//  private final String exchangeName = "liftRideExchange";
 
   public ChannelPool(String host, int poolSize, String queueName) throws IOException, TimeoutException {
     this.pool = new LinkedBlockingQueue<>(poolSize);
@@ -23,6 +24,7 @@ public class ChannelPool {
     factory.setHost(host);
     factory.setUsername("guest");
     factory.setPassword("guest");
+    factory.setPort(5672);
     this.connection = factory.newConnection();
     this.queueName = queueName;
 
@@ -32,7 +34,16 @@ public class ChannelPool {
   private void init(int poolSize) throws IOException {
     for (int i = 0; i < poolSize; i++) {
       Channel channel = connection.createChannel();
+      // Declare exchange for routing messages
+      channel.exchangeDeclare("myExchange", "direct", true);
+
+      // Declare and bind server queue
       channel.queueDeclare(queueName, true, false, false, null);
+      channel.queueBind(queueName, "myExchange", "consumerKey");
+
+//      channel.queueDeclare("consumerQueue", true, false, false, null);
+//      channel.queueBind("consumerQueue", "myExchange", "consumerKey");
+
       pool.add(channel);
     }
     log.info("Initialized channel pool with {} channels.", poolSize);

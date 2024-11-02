@@ -72,11 +72,11 @@ public class LiftRideConsumer {
       Channel channel = null;
       try {
         channel = channelPool.borrowChannel();
-        channel.queueDeclare(queueName, true, false, false, null);
-        channel.basicQos(10);
+//        channel.queueDeclare(queueName, true, false, false, null);
+        channel.basicQos(20);
 
         Consumer consumer = createConsumer(channel);
-        channel.basicConsume(queueName, false, consumer);
+        channel.basicConsume(queueName, true, consumer);
       } catch (IOException e) {
         log.error("Error in consumer worker", e);
       } finally {
@@ -87,6 +87,25 @@ public class LiftRideConsumer {
     }
   }
 
+//  private Consumer createConsumer(Channel channel) {
+//    return new DefaultConsumer(channel) {
+//      @Override
+//      public void handleDelivery(String consumerTag, Envelope envelope,
+//          AMQP.BasicProperties properties, byte[] body)
+//          throws IOException {
+//        try {
+//          LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
+//          processLiftRide(request);
+//
+//          channel.basicAck(envelope.getDeliveryTag(), false);
+//          log.debug("Processed message for skier: {}", request.getSkierID());
+//        } catch (Exception e) {
+//          log.error("Error processing message", e);
+//          channel.basicNack(envelope.getDeliveryTag(), false, true);
+//        }
+//      }
+//    };
+//  }
   private Consumer createConsumer(Channel channel) {
     return new DefaultConsumer(channel) {
       @Override
@@ -97,15 +116,23 @@ public class LiftRideConsumer {
           LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
           processLiftRide(request);
 
-          channel.basicAck(envelope.getDeliveryTag(), false);
+          // Acknowledge after processing
+          //            channel.basicAck(envelope.getDeliveryTag(), false);
           log.debug("Processed message for skier: {}", request.getSkierID());
         } catch (Exception e) {
           log.error("Error processing message", e);
-          channel.basicNack(envelope.getDeliveryTag(), false, true);
+
+          // Nack if processing fails
+          try {
+            channel.basicNack(envelope.getDeliveryTag(), false, true);
+          } catch (IOException nackException) {
+            log.error("Error sending nack for message", nackException);
+          }
         }
       }
     };
   }
+
 
   private void processLiftRide(LiftRideRequest request) {
     skierRecords.computeIfAbsent(request.getSkierID(), k -> new LiftRideRecord())

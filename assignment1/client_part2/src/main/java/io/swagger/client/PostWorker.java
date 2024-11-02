@@ -5,20 +5,22 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class PostWorker implements Runnable {
 
-    private static final String BASE_URL = "http://54.191.43.50:8080";
+//    private static final String BASE_URL = "http://52.26.163.233:8080";
+    private static final String BASE_URL = "http://Assignment2-164771622.us-west-2.elb.amazonaws.com";
     private final BlockingQueue<SkierLiftRideEvent> eventQueue;
     private final AtomicInteger completedRequests;
     private final AtomicInteger failedRequests;
     private final ConcurrentLinkedQueue<String> logEntries;
     private final CountDownLatch latch;
     private final HttpClient client;
-    private static final int MAX_RETRIES = 5;
+    private static final int MAX_RETRIES = 2;
 
     public PostWorker(BlockingQueue<SkierLiftRideEvent> eventQueue,
             AtomicInteger completedRequests,
@@ -76,6 +78,43 @@ public class PostWorker implements Runnable {
             Thread.currentThread().interrupt();
         }
     }
+
+//    @Override
+//    public void run() {
+//        try {
+//            while (true) {
+//                SkierLiftRideEvent event = eventQueue.take(); // Blocking until an event is available
+//                String jsonPayload = createJsonPayload(event);
+//
+//                long startTime = System.currentTimeMillis();
+//                sendPostRequest(jsonPayload, event)
+//                    .thenAccept(response -> {
+//                        // Capture end time and calculate latency
+//                        long latency = System.currentTimeMillis() - startTime;
+//
+//                        // Log to the concurrent queue for CSV writing
+//                        logEntries.add(startTime + ",POST," + latency + "," + response.statusCode());
+//
+//                        if (response.statusCode() == 201) {
+//                            completedRequests.incrementAndGet();
+//                        } else {
+//                            failedRequests.incrementAndGet();
+//                        }
+//
+//                        // Count down the latch after processing the event
+//                        latch.countDown();
+//                    })
+//                    .exceptionally(ex -> {
+//                        // Handle exceptions and increment failed requests
+//                        failedRequests.incrementAndGet();
+//                        latch.countDown();
+//                        return null;
+//                    });
+//            }
+//        } catch (Exception e) {
+//            Thread.currentThread().interrupt();
+//        }
+//    }
 
     private HttpResponse<String> sendPostRequest(String jsonPayload, SkierLiftRideEvent event) throws Exception {
         // Construct the correct URI using the provided parameters

@@ -35,16 +35,12 @@ public class ChannelPool {
   }
 
   public Channel borrowChannel() throws IOException {
-    try {
-      Channel channel = pool.poll();
-      if (channel == null || !channel.isOpen()) {
-        channel = connection.createChannel();
-      }
-      return channel;
-    } catch (IOException e) {
-      log.error("Error borrowing channel from pool", e);
-      throw e;
+    Channel channel = pool.poll();
+    if (channel == null || !channel.isOpen()) {
+      log.debug("Creating a new channel as pool is empty or channel was closed");
+      channel = connection.createChannel();
     }
+    return channel;
   }
 
   public void returnChannel(Channel channel) {
