@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class PostWorker implements Runnable {
 
-//    private static final String BASE_URL = "http://52.26.163.233:8080";
-    private static final String BASE_URL = "http://Assignment2-164771622.us-west-2.elb.amazonaws.com";
+    private static final String BASE_URL = "http://52.26.163.233:8080";
+//    private static final String BASE_URL = "http://Assignment2-164771622.us-west-2.elb.amazonaws.com";
     private final BlockingQueue<SkierLiftRideEvent> eventQueue;
     private final AtomicInteger completedRequests;
     private final AtomicInteger failedRequests;

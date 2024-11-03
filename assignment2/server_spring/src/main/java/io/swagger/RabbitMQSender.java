@@ -28,7 +28,4 @@ public class RabbitMQSender {
     log.info("Message sent: {}", liftRideRequest);
   }
 
-//  public void sendLiftRide(String testMessage) {
-//    rabbitTemplate.convertAndSend(queueName, testMessage);
-//  }
 }

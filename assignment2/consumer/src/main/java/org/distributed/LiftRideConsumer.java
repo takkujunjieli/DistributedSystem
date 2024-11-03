@@ -34,6 +34,10 @@ public class LiftRideConsumer {
     factory.setHost(host);
     factory.setUsername("guest");
     factory.setPassword("guest");
+    // Add connection timeout
+    factory.setConnectionTimeout(5000);
+    // Enable automatic recovery
+    factory.setAutomaticRecoveryEnabled(true);
   }
 
   private Properties loadProperties() {
@@ -76,7 +80,8 @@ public class LiftRideConsumer {
         channel.basicQos(20);
 
         Consumer consumer = createConsumer(channel);
-        channel.basicConsume(queueName, true, consumer);
+        String consumerTag = channel.basicConsume(queueName, false, consumer);
+        log.info("Consumer registered with tag: {}", consumerTag);
       } catch (IOException e) {
         log.error("Error in consumer worker", e);
       } finally {
@@ -87,25 +92,6 @@ public class LiftRideConsumer {
     }
   }
 
-//  private Consumer createConsumer(Channel channel) {
-//    return new DefaultConsumer(channel) {
-//      @Override
-//      public void handleDelivery(String consumerTag, Envelope envelope,
-//          AMQP.BasicProperties properties, byte[] body)
-//          throws IOException {
-//        try {
-//          LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
-//          processLiftRide(request);
-//
-//          channel.basicAck(envelope.getDeliveryTag(), false);
-//          log.debug("Processed message for skier: {}", request.getSkierID());
-//        } catch (Exception e) {
-//          log.error("Error processing message", e);
-//          channel.basicNack(envelope.getDeliveryTag(), false, true);
-//        }
-//      }
-//    };
-//  }
   private Consumer createConsumer(Channel channel) {
     return new DefaultConsumer(channel) {
       @Override
@@ -117,7 +103,7 @@ public class LiftRideConsumer {
           processLiftRide(request);
 
           // Acknowledge after processing
-          //            channel.basicAck(envelope.getDeliveryTag(), false);
+          channel.basicAck(envelope.getDeliveryTag(), false);
           log.debug("Processed message for skier: {}", request.getSkierID());
         } catch (Exception e) {
           log.error("Error processing message", e);
@@ -137,6 +123,10 @@ public class LiftRideConsumer {
   private void processLiftRide(LiftRideRequest request) {
     skierRecords.computeIfAbsent(request.getSkierID(), k -> new LiftRideRecord())
         .addRide(request.getLiftRide());
+    // Log processing
+    log.info("Added ride for skier: {} on lift: {}",
+        request.getSkierID(),
+        request.getLiftRide().getLiftID());
   }
 
   public void shutdown() throws IOException, TimeoutException {
