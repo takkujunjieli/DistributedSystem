@@ -39,13 +39,13 @@
 
 ### Single instance
 
-![Result from terminal](https:github.com/takkujunjieli/DistributedSystem/tree/main/assignment2/single.png)
+![Result from terminal](./single.png)
 
-![Result from RMQ console](https:github.com/takkujunjieli/DistributedSystem/tree/main/assignment2/rmq_single.png)
+![Result from RMQ console](./rmq_single.png)
 
 ### Three instances with Load Balancer
 
-![Result from terminal](https:github.com/takkujunjieli/DistributedSystem/tree/main/assignment2/three.png)
+![Result from terminal](./three.png)
 
 - Note: queue size is 0
-  ![Result from RMQ console](https:github.com/takkujunjieli/DistributedSystem/tree/main/assignment2/rmq_three.png)
+  ![Result from RMQ console](./rmq_three.png)
