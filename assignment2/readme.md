@@ -6,6 +6,10 @@
 
 ## Configurations
 
+- For client: locate PostWorker file and comment out either single instance's IP or load-balancers DNS
+
+  ![EC2_instances Image](./config.png.png)
+
 - For each component, you may check and change configuration like IP or load balancer usage in application.properties file.
 - It's path looks like /src/main/resources/application.properties
 
