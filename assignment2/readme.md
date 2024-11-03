@@ -33,7 +33,7 @@
 
 - I have three server instances and one consumer instance and one for RabbitMQ, shown in the image.
 
-![EC2_instances Image](https:github.com/takkujunjieli/DistributedSystem/tree/main/assignment2/ec2_instances.png)
+![EC2_instances Image](./ec2_instances.png)
 
 ## Results:
 
