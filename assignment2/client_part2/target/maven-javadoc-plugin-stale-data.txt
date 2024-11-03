@@ -1,0 +1,24 @@
+cmd.exe
+/X
+/C
+""C:\Program Files\Java\jdk-17\bin\javadoc.exe" @options @packages"
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\allclasses-index.html = 1730577841371
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\allpackages-index.html = 1730577841373
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\element-list = 1730577841036
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\help-doc.html = 1730577841432
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\index-all.html = 1730577841422
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\index.html = 1730577841343
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\jquery-ui.overrides.css = 1730577841464
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\member-search-index.js = 1730577841382
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\module-search-index.js = 1730577841376
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\options = 1730577838493
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\overview-summary.html = 1730577841426
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\overview-tree.html = 1730577841338
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\package-search-index.js = 1730577841377
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\packages = 1730577838494
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\script.js = 1730577841438
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\search.js = 1730577841441
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\serialized-form.html = 1730577841097
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\stylesheet.css = 1730577841436
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\tag-search-index.js = 1730577841384
+C:\Users\alvin\Desktop\neu\cs6650-main\assignment\assignment1\client_part2\target\apidocs\type-search-index.js = 1730577841379

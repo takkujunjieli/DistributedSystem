@@ -1,7 +1,7 @@
-# Ignore target directories in all sub-projects
-**/target/
-!**/src/main/**/target/
-!**/src/test/**/target/
+# # Ignore target directories in all sub-projects
+# **/target/
+# !**/src/main/**/target/
+# !**/src/test/**/target/
 
 # IntelliJ IDEA specific ignores
 .idea/
