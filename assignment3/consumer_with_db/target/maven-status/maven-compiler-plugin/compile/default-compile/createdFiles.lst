@@ -1,0 +1,8 @@
+org\distributed\LiftRideConsumer.class
+org\distributed\LiftRideRecord.class
+org\distributed\LiftRideConsumer$1.class
+org\distributed\LiftRide.class
+org\distributed\LiftRideRequest.class
+org\distributed\ChannelPool.class
+org\distributed\LiftRideConsumer$ConsumerWorker.class
+org\distributed\Main.class
