@@ -30,9 +30,10 @@ public class LiftRideDAO {
         stmt.addBatch();
       }
 
-      stmt.executeBatch();
+      int[] result = stmt.executeBatch();
+      System.out.println("Inserted " + result.length + " records into the database.");
     } catch (SQLException e) {
-      log.error("Error saving to database", e);
+      throw new RuntimeException("Error saving to database", e);
     }
   }
 }
