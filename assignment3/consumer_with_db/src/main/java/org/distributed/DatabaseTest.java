@@ -1,9 +1,16 @@
 package org.distributed;
 
 import java.util.List;
+import org.apache.commons.dbcp2.BasicDataSource;
 
 public class DatabaseTest {
   public static void main(String[] args) {
+    try {
+      BasicDataSource dataSource = DBCPDataSource.getDataSource();
+      System.out.println("Database connection successful!");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     LiftRideDAO dao = new LiftRideDAO();
 
     // Test Insert

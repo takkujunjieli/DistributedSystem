@@ -15,7 +15,7 @@ public class LiftRideDAO {
   private static final BasicDataSource dataSource = DBCPDataSource.getDataSource();
 
   public void saveToDatabase(List<LiftRideRequest> requests) {
-    String query = "INSERT INTO lift_rides (resort_id, season_id, day_id, skier_id, lift_id, time) VALUES (?, ?, ?, ?, ?, ?)";
+    String query = "INSERT INTO SkierLiftRides (resort_id, season_id, day_id, skier_id, lift_id, time) VALUES (?, ?, ?, ?, ?, ?)";
 
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(query)) {
