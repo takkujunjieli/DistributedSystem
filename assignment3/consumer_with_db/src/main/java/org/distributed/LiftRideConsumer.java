@@ -4,6 +4,8 @@ import com.rabbitmq.client.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.List;
+import java.util.ArrayList;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import java.util.concurrent.*;
@@ -21,6 +23,10 @@ public class LiftRideConsumer {
   private ChannelPool channelPool;
   private LiftRideDAO liftRideDAO = new LiftRideDAO();
 
+  private final BlockingQueue<LiftRideRequest> batchQueue;
+  private final int batchSize;
+  private final ScheduledExecutorService batchExecutor;
+
   public LiftRideConsumer() {
     this.skierRecords = new ConcurrentHashMap<>();
     Properties properties = loadProperties();
@@ -30,14 +36,17 @@ public class LiftRideConsumer {
     this.numThreads = Integer.parseInt(properties.getProperty("consumer.numThreads"));
     this.executorService = Executors.newFixedThreadPool(numThreads);
     this.objectMapper = new ObjectMapper();
+    this.batchSize = Integer.parseInt(properties.getProperty("consumer.batchSize"));
+
+    this.batchQueue = new LinkedBlockingQueue<>(batchSize);
+    this.batchExecutor = Executors.newSingleThreadScheduledExecutor();
+    this.batchExecutor.scheduleAtFixedRate(this::processBatch,1, 1, TimeUnit.SECONDS);
 
     factory = new ConnectionFactory();
     factory.setHost(host);
     factory.setUsername("guest");
     factory.setPassword("guest");
-    // Add connection timeout
     factory.setConnectionTimeout(5000);
-    // Enable automatic recovery
     factory.setAutomaticRecoveryEnabled(true);
   }
 
@@ -101,7 +110,8 @@ public class LiftRideConsumer {
           throws IOException {
         try {
           LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
-          processLiftRide(request);
+          batchQueue.offer(request);
+//          processLiftRide(request);
 
           // Acknowledge after processing
           channel.basicAck(envelope.getDeliveryTag(), false);
@@ -121,14 +131,23 @@ public class LiftRideConsumer {
   }
 
 
-  private void processLiftRide(LiftRideRequest request) {
-    liftRideDAO.saveToDatabase(request);
-    skierRecords.computeIfAbsent(request.getSkierID(), k -> new LiftRideRecord())
-        .addRide(request.getLiftRide());
-    // Log processing
-    log.info("Added ride for skier: {} on lift: {}",
-        request.getSkierID(),
-        request.getLiftRide().getLiftID());
+  private void processBatch() {
+    List<LiftRideRequest> batch = new ArrayList<>();
+    batchQueue.drainTo(batch, batchSize);
+
+    if (!batch.isEmpty()) {
+      try {
+        liftRideDAO.saveToDatabase(batch);
+        batch.forEach(request -> {
+          skierRecords.computeIfAbsent(request.getSkierID(), k -> new LiftRideRecord())
+              .addRide(request.getLiftRide());
+        });
+
+        log.info("Processed batch of size: {}", batch.size());
+      } catch (Exception e) {
+        log.error("Error processing batch", e);
+      }
+    }
   }
 
   public void shutdown() throws IOException, TimeoutException {
@@ -141,12 +160,17 @@ public class LiftRideConsumer {
     }
 
     executorService.shutdown();
+    batchExecutor.shutdown();
     try {
       if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
         executorService.shutdownNow();
       }
+      if (!batchExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+        batchExecutor.shutdownNow();
+      }
     } catch (InterruptedException e) {
       executorService.shutdownNow();
+      batchExecutor.shutdownNow();
       Thread.currentThread().interrupt();
     }
   }
