@@ -1,0 +1,37 @@
+# # Ignore target directories in all sub-projects
+# **/target/
+# !**/src/main/**/target/
+# !**/src/test/**/target/
+
+# IntelliJ IDEA specific ignores
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Eclipse specific ignores
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans specific ignores
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Ignore build directories in all sub-projects
+**/build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# VS Code specific ignores
+.vscode/
+
+# Mac OS specific ignores
+.DS_Store
