@@ -7,9 +7,14 @@ import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import java.util.concurrent.*;
 import org.slf4j.LoggerFactory;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class LiftRideConsumer {
   private static final Logger log = LoggerFactory.getLogger(LiftRideConsumer.class);
@@ -19,13 +24,18 @@ public class LiftRideConsumer {
   private final int numThreads;
   private final ExecutorService executorService;
   private final ObjectMapper objectMapper;
+  private final AtomicInteger counter = new AtomicInteger(0);
+  private final List<BlockingQueue<LiftRideRequest>> batchQueues;
+  private final int batchSize;
+  private final List<ScheduledExecutorService> batchExecutors;
+  private final AtomicLong totalRecordsInserted = new AtomicLong(0);
+  private final ScheduledExecutorService statsExecutor = Executors.newSingleThreadScheduledExecutor();
+  private final int queueSize;
+  private final AtomicInteger[] queueMessageCounts;
+
   private com.rabbitmq.client.Connection connection;
   private ChannelPool channelPool;
   private LiftRideDAO liftRideDAO = new LiftRideDAO();
-
-  private final BlockingQueue<LiftRideRequest> batchQueue;
-  private final int batchSize;
-  private final ScheduledExecutorService batchExecutor;
 
   public LiftRideConsumer() {
     this.skierRecords = new ConcurrentHashMap<>();
@@ -37,10 +47,27 @@ public class LiftRideConsumer {
     this.executorService = Executors.newFixedThreadPool(numThreads);
     this.objectMapper = new ObjectMapper();
     this.batchSize = Integer.parseInt(properties.getProperty("consumer.batchSize"));
+    this.queueSize = Integer.parseInt(properties.getProperty("consumer.queueSize"));
+    int numBatchProcessors = Integer.parseInt(properties.getProperty("consumer.numBatchProcessors"));
+    this.batchQueues = new ArrayList<>(numBatchProcessors);
+    this.batchExecutors = new ArrayList<>(numBatchProcessors);
+    this.statsExecutor.scheduleAtFixedRate(this::logThroughput, 10, 10, TimeUnit.SECONDS);
+    this.statsExecutor.scheduleAtFixedRate(this::logQueueDistribution, 10, 10, TimeUnit.SECONDS);
+    this.queueMessageCounts = new AtomicInteger[numBatchProcessors];
 
-    this.batchQueue = new LinkedBlockingQueue<>(batchSize);
-    this.batchExecutor = Executors.newSingleThreadScheduledExecutor();
-    this.batchExecutor.scheduleAtFixedRate(this::processBatch,1, 1, TimeUnit.SECONDS);
+    for (int i = 0; i < numBatchProcessors; i++) {
+      batchQueues.add(new LinkedBlockingQueue<>(queueSize));
+      queueMessageCounts[i] = new AtomicInteger(0);
+      ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+      batchExecutors.add(executor);
+      final int queueIndex = i;
+      executor.scheduleAtFixedRate(
+          () -> processBatch(queueIndex),
+          100, // Initial delay
+          100, // Period in milliseconds
+          TimeUnit.MILLISECONDS
+      );
+    }
 
     factory = new ConnectionFactory();
     factory.setHost(host);
@@ -48,6 +75,8 @@ public class LiftRideConsumer {
     factory.setPassword("guest");
     factory.setConnectionTimeout(5000);
     factory.setAutomaticRecoveryEnabled(true);
+
+
   }
 
   private Properties loadProperties() {
@@ -74,6 +103,7 @@ public class LiftRideConsumer {
       }
 
       log.info("Started {} consumer threads", numThreads);
+      log.info("Number of batch queues: {}", batchQueues.size());
     } catch (IOException | TimeoutException e) {
       log.error("Error starting consumer", e);
       shutdown();
@@ -106,34 +136,28 @@ public class LiftRideConsumer {
     return new DefaultConsumer(channel) {
       @Override
       public void handleDelivery(String consumerTag, Envelope envelope,
-          AMQP.BasicProperties properties, byte[] body)
-          throws IOException {
+          AMQP.BasicProperties properties, byte[] body) throws IOException {
         try {
-          LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
-          batchQueue.offer(request);
-//          processLiftRide(request);
-
-          // Acknowledge after processing
+//          LiftRideRequest request = objectMapper.readValue(body, LiftRideRequest.class);
+//          int queueIndex = counter.getAndIncrement() % batchQueues.size();
+//          queueMessageCounts[queueIndex].incrementAndGet(); // Update count
+//          if (!batchQueues.get(queueIndex).offer(request, 100, TimeUnit.MILLISECONDS)) {
+//            log.warn("Queue {} is full, message processing delayed", queueIndex);
+//          }
           channel.basicAck(envelope.getDeliveryTag(), false);
-          log.debug("Processed message for skier: {}", request.getSkierID());
         } catch (Exception e) {
           log.error("Error processing message", e);
-
-          // Nack if processing fails
-          try {
-            channel.basicNack(envelope.getDeliveryTag(), false, true);
-          } catch (IOException nackException) {
-            log.error("Error sending nack for message", nackException);
-          }
+          channel.basicNack(envelope.getDeliveryTag(), false, true);
         }
       }
     };
   }
 
 
-  private void processBatch() {
-    List<LiftRideRequest> batch = new ArrayList<>();
-    batchQueue.drainTo(batch, batchSize);
+  private void processBatch(int queueIndex) {
+    List<LiftRideRequest> batch = new ArrayList<>(batchSize);
+    BlockingQueue<LiftRideRequest> queue = batchQueues.get(queueIndex);
+    queue.drainTo(batch, batchSize);
 
     if (!batch.isEmpty()) {
       try {
@@ -143,12 +167,26 @@ public class LiftRideConsumer {
               .addRide(request.getLiftRide());
         });
 
-        log.info("Processed batch of size: {}", batch.size());
+        totalRecordsInserted.addAndGet(batch.size());
       } catch (Exception e) {
         log.error("Error processing batch", e);
       }
     }
   }
+
+  private void logThroughput() {
+    long records = totalRecordsInserted.getAndSet(0);
+    System.out.println("Database Throughput: " + records / 10.0 + " records/second");
+  }
+
+  private void logQueueDistribution() {
+    StringBuilder stats = new StringBuilder("Queue Message Distribution: ");
+    for (int i = 0; i < queueMessageCounts.length; i++) {
+      stats.append(String.format("Queue %d: %d messages; ", i, queueMessageCounts[i].get()));
+    }
+    log.info(stats.toString());
+  }
+
 
   public void shutdown() throws IOException, TimeoutException {
     if (channelPool != null) {
@@ -159,19 +197,38 @@ public class LiftRideConsumer {
       connection.close();
     }
 
+    // Drain and process remaining messages in the queue
+    List<LiftRideRequest> remainingBatch = new ArrayList<>();
+    for (BlockingQueue<LiftRideRequest> queue : batchQueues) {
+      queue.drainTo(remainingBatch);
+    }
+    if (!remainingBatch.isEmpty()) {
+      log.info("Processing remaining batch of size: {}", remainingBatch.size());
+      liftRideDAO.saveToDatabase(remainingBatch);
+    }
+
     executorService.shutdown();
-    batchExecutor.shutdown();
+    for (BlockingQueue<LiftRideRequest> queue : batchQueues) {
+      queue.remove();
+    }
+    statsExecutor.shutdown();
     try {
       if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
         executorService.shutdownNow();
       }
-      if (!batchExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
-        batchExecutor.shutdownNow();
+      if (!statsExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+        statsExecutor.shutdownNow();
       }
     } catch (InterruptedException e) {
       executorService.shutdownNow();
-      batchExecutor.shutdownNow();
+      statsExecutor.shutdownNow();
       Thread.currentThread().interrupt();
     }
   }
+
 }
+
+
+
+
+

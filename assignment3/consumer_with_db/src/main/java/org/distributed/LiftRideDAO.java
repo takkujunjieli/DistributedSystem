@@ -16,7 +16,7 @@ public class LiftRideDAO {
 
   public void saveToDatabase(List<LiftRideRequest> requests) {
     String query = "INSERT INTO SkierLiftRides (resort_id, season_id, day_id, skier_id, lift_id, time) VALUES (?, ?, ?, ?, ?, ?)";
-
+    long startTime = System.currentTimeMillis(); // Start timing
     try (Connection conn = dataSource.getConnection();
         PreparedStatement stmt = conn.prepareStatement(query)) {
 
@@ -31,8 +31,11 @@ public class LiftRideDAO {
       }
 
       int[] result = stmt.executeBatch();
+      long endTime = System.currentTimeMillis(); // End timing
+      // Log metrics
       System.out.println("Inserted " + result.length + " records into the database.");
-    } catch (SQLException e) {
+      System.out.println("Time taken: " + (endTime - startTime) + " ms");
+      System.out.println("Throughput: " + (result.length * 1000.0 / (endTime - startTime)) + " records/second");    } catch (SQLException e) {
       throw new RuntimeException("Error saving to database", e);
     }
   }

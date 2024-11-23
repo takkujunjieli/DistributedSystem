@@ -1,5 +1,6 @@
 package org.distributed;
 
+import lombok.Getter;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.io.IOException;
@@ -7,6 +8,8 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class DBCPDataSource {
+  // Public method to retrieve the DataSource
+  @Getter
   private static BasicDataSource dataSource;
 
   // Static block to initialize the DataSource
@@ -22,8 +25,10 @@ public class DBCPDataSource {
       String password = properties.getProperty("DB_PASSWORD");
 
       // Load connection pool configurations
-      int initialSize = Integer.parseInt(properties.getProperty("dbcp2.initialSize", "5"));
-      int maxTotal = Integer.parseInt(properties.getProperty("dbcp2.maxTotal", "50"));
+      int initialSize = Integer.parseInt(properties.getProperty("dbcp2.initialSize"));
+      int maxTotal = Integer.parseInt(properties.getProperty("dbcp2.maxTotal"));
+      int maxIdle = Integer.parseInt(properties.getProperty("dbcp2.maxIdle"));
+      int minIdle = Integer.parseInt(properties.getProperty("dbcp2.minIdle"));
 
       // Construct the JDBC URL
       String url = String.format("jdbc:mysql://%s:%s/%s?serverTimezone=UTC", hostName, port, database);
@@ -35,6 +40,8 @@ public class DBCPDataSource {
       dataSource.setPassword(password);
       dataSource.setInitialSize(initialSize);
       dataSource.setMaxTotal(maxTotal);
+      dataSource.setMaxIdle(maxIdle);
+      dataSource.setMinIdle(minIdle);
 
       // Ensure MySQL JDBC driver is loaded
       Class.forName("com.mysql.cj.jdbc.Driver");
@@ -57,10 +64,6 @@ public class DBCPDataSource {
     return properties;
   }
 
-  // Public method to retrieve the DataSource
-  public static BasicDataSource getDataSource() {
-    return dataSource;
-  }
 }
 
 
