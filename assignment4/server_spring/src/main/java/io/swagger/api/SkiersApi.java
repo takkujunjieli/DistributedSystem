@@ -49,8 +49,8 @@ public interface SkiersApi {
         produces = { "application/json" }, 
         method = RequestMethod.GET)
     ResponseEntity<Integer> getSkierDayVertical(@Parameter(in = ParameterIn.PATH, description = "ID of the resort the skier is at", required=true, schema=@Schema()) @PathVariable("resortID") Integer resortID
-, @Parameter(in = ParameterIn.PATH, description = "ID of the ski season", required=true, schema=@Schema()) @PathVariable("seasonID") String seasonID
-, @DecimalMin("1") @DecimalMax("366") @Parameter(in = ParameterIn.PATH, description = "ID number of ski day in the ski season", required=true, schema=@Schema()) @PathVariable("dayID") String dayID
+, @Parameter(in = ParameterIn.PATH, description = "ID of the ski season", required=true, schema=@Schema()) @PathVariable("seasonID") Integer seasonID
+, @DecimalMin("1") @DecimalMax("366") @Parameter(in = ParameterIn.PATH, description = "ID number of ski day in the ski season", required=true, schema=@Schema()) @PathVariable("dayID") Integer dayID
 );
 
 
@@ -69,18 +69,17 @@ public interface SkiersApi {
 
     @Operation(summary = "get vertical of all lift rides for the skier in one day", description = "query a lift ride's vertical in the data store", tags={ "skiers" })
     @ApiResponses(value = { 
-        @ApiResponse(responseCode = "201", description = "successful operation"),
+        @ApiResponse(responseCode = "200", description = "successful operation"),
         
         @ApiResponse(responseCode = "400", description = "Invalid inputs", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseMsg.class))),
         
         @ApiResponse(responseCode = "404", description = "Data not found", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ResponseMsg.class))) })
     @RequestMapping(value = "/skiers/{resortID}/seasons/{seasonID}/days/{dayID}/skiers/{skierID}",
-        produces = { "application/json" }, 
-        consumes = { "application/json" }, 
+        produces = { "application/json" },
         method = RequestMethod.GET)
     ResponseEntity<Integer> getSkierResortVertical(@Parameter(in = ParameterIn.PATH, description = "ID of the resort the skier is at", required=true, schema=@Schema()) @PathVariable("resortID") Integer resortID
-, @Parameter(in = ParameterIn.PATH, description = "ID of the ski season", required=true, schema=@Schema()) @PathVariable("seasonID") String seasonID
-, @DecimalMin("1") @DecimalMax("366") @Parameter(in = ParameterIn.PATH, description = "ID number of ski day in the ski season", required=true, schema=@Schema()) @PathVariable("dayID") String dayID
+, @Parameter(in = ParameterIn.PATH, description = "ID of the ski season", required=true, schema=@Schema()) @PathVariable("seasonID") Integer seasonID
+, @Min(1) @Max(366) @Parameter(in = ParameterIn.PATH, description = "ID number of ski day in the ski season", required=true, schema=@Schema()) @PathVariable("dayID") Integer dayID
 , @Parameter(in = ParameterIn.PATH, description = "ID of the skier riding the lift", required=true, schema=@Schema()) @PathVariable("skierID") Integer skierID
 );
 

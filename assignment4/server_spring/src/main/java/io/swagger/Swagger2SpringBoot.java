@@ -21,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 //    org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration.class,
 //    org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration.class
 //})
+@SpringBootApplication
 @ComponentScan(basePackages = { "io.swagger", "io.swagger.api" , "io.swagger.configuration", "io.swagger.repository" })
 public class Swagger2SpringBoot implements CommandLineRunner {
 

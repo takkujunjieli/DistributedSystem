@@ -14,27 +14,27 @@ import javax.persistence.Table;
 public class SkierLiftRides {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private long id;
 
-  @Column(nullable = false)
+  @Column(name = "resortId", nullable = false)
   private int resortId;
 
-  @Column(nullable = false)
+  @Column(name = "seasonId", nullable = false)
   private int seasonId;
 
-  @Column(nullable = false)
+  @Column(name = "dayId",nullable = false)
   private int dayId;
 
-  @Column(nullable = false)
+  @Column(name = "skierId",nullable = false)
   private int skierId;
 
-  @Column(nullable = false)
+  @Column(name = "liftId",nullable = false)
   private int liftId;
 
-  @Column(nullable = false)
+  @Column(name = "time",nullable = false)
   private int time; // Store as seconds or an integer
 
-  public Long getId() {
+  public long getId() {
     return id;
   }
 
