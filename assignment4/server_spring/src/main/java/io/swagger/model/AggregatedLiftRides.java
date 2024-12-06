@@ -15,19 +15,19 @@ public class AggregatedLiftRides {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "skierId")
+  @Column(name = "skierId", nullable = false)
   private Integer skierId;
 
-  @Column(name = "resortId")
+  @Column(name = "resortId", nullable = false)
   private Integer resortId;
 
-  @Column(name = "seasonId")
+  @Column(name = "seasonId", nullable = false)
   private Integer seasonId;
 
-  @Column(name = "dayId")
+  @Column(name = "dayId", nullable = false)
   private Integer dayId;
 
-  @Column(name = "totalVertical")
+  @Column(name = "totalVertical", nullable = false)
   private Integer totalVertical;
 
   // Getters and Setters
